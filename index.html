@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>User Manager Form</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f0f2f5;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    form {
+      background: #fff;
+      padding: 25px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      width: 100%;
+      max-width: 400px;
+    }
+
+    h2 {
+      margin-top: 0;
+      text-align: center;
+    }
+
+    input, button {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      box-sizing: border-box;
+    }
+
+    button {
+      background-color: #007bff;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    #message {
+      text-align: center;
+      font-weight: bold;
+    }
+
+    .success { color: green; }
+    .error { color: red; }
+  </style>
+</head>
+<body>
+
+  <form>
+    <h2>User Manager</h2>
+    <input type="email" id="email" placeholder="Email (for search)" required />
+    <input type="text" id="name" placeholder="Name" />
+    <input type="text" id="phone" placeholder="Phone Number" />
+    
+    <button type="button" onclick="sendData('search')">Search</button>
+    <button type="button" onclick="sendData('create')">Create</button>
+    <button type="button" onclick="sendData('update')">Update</button>
+
+    <p id="message"></p>
+  </form>
+
+  <script>
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbzv3TFG2EGYFqqg-le-N37GQTzzI-dpe7m6FdZg0nbxNbn1gwIOK120C4i3pbaDqP8mVQ/exec';
+
+    function sendData(action) {
+      const email = document.getElementById('email').value.trim();
+      const name = document.getElementById('name').value.trim();
+      const phone = document.getElementById('phone').value.trim();
+
+      fetch(scriptURL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action, email, name, phone })
+      })
+      .then(res => res.json())
+      .then(data => {
+        const msg = document.getElementById('message');
+        if (action === 'search') {
+          if (data.status === 'found') {
+            document.getElementById('name').value = data.name;
+            document.getElementById('phone').value = data.phone;
+            msg.textContent = 'User found!';
+            msg.className = 'success';
+          } else {
+            msg.textContent = 'User not found.';
+            msg.className = 'error';
+          }
+        } else if (action === 'create') {
+          msg.textContent = data.status === 'created' ? 'User created!' : 'User already exists.';
+          msg.className = data.status === 'created' ? 'success' : 'error';
+        } else if (action === 'update') {
+          msg.textContent = data.status === 'updated' ? 'User updated!' : 'User not found.';
+          msg.className = data.status === 'updated' ? 'success' : 'error';
+        }
+      })
+      .catch(() => {
+        const msg = document.getElementById('message');
+        msg.textContent = 'Failed to connect. Try again.';
+        msg.className = 'error';
+      });
+    }
+  </script>
+
+</body>
+</html>
